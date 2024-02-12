@@ -30,12 +30,12 @@ def generate_policy(
     resource: str
 ) -> json:
     """
-    `Is authentication token is valid then how to pass message to api-gateway to 
+    `Is authentication token is valid then how to pass message to api-gateway to
     understand that hey, this token is valid please go future process.`
     This function has solved this questions.
     """
     auth_resp = {
-        "principal_Id": principal_id
+        "principalId": principal_id
     }
     if effect and resource:
         policy = {
