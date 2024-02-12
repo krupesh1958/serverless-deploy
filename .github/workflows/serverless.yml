@@ -34,20 +34,3 @@ jobs:
           lambda_function_name: ${{ secrets.LAMBDA_FUNCTION_NAME }}
         run: |
           aws lambda update-function-code --function-name $lambda_function_name --zip-file fileb://lambda_function.zip
-
-      - name: Upload external modules into lambda layer
-        env:
-          relase_id: ${{ format('serverless-deploy-dev.zip', github.head_ref )}}
-        run: |
-          mkdir python
-          pip install -r layers/requirements.txt -t python
-          rm -rf *dist-info
-          zip --quiet -r $relase_id python
-  
-          # Upload the zip file into lambda layer
-          aws lambda publish-layer-version --layer-name 'serverless-deploy-dev' \
-          --description "Lambda function to attach external packages with lambda layers" \
-          --license-info "MIT" \
-          --zip-file fileb://$relase_id \
-          --compatible-runtimes python3.10 python3.11 python3.12 \
-          --compatible-architectures "arm64" "x86_64"
