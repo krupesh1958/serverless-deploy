@@ -1,0 +1,53 @@
+name: Deploy file and layers into Lambda
+
+on:
+  push:
+    branches:
+      - main  # Trigger the workflow on push or pull request to the main branch
+
+jobs:
+  deploy-function:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.12
+      
+      - name: Package Lambda Function
+        run: |
+          zip -r lambda_function.zip lambda_function.py
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}  # Update this to your AWS region
+
+      - name: Update Lambda function code
+        env:
+          lambda_function_name: ${{ secrets.LAMBDA_FUNCTION_NAME }}
+        run: |
+          aws lambda update-function-code --function-name $lambda_function_name --zip-file fileb://lambda_function.zip
+
+      - name: Upload external modules into lambda layer
+        env:
+          relase_id: ${{ format('serverless-deploy-dev.zip', github.head_ref )}}
+        run: |
+          mkdir python
+          pip install -r layers/requirements.txt -t python
+          rm -rf *dist-info
+          zip --quiet -r $relase_id python
+  
+          # Upload the zip file into lambda layer
+          aws lambda publish-layer-version --layer-name 'serverless-deploy-dev' \
+          --description "Lambda function to attach external packages with lambda layers" \
+          --license-info "MIT" \
+          --zip-file fileb://$relase_id \
+          --compatible-runtimes python3.10 python3.11 python3.12 \
+          --compatible-architectures "arm64" "x86_64"
