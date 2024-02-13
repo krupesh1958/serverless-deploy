@@ -33,7 +33,7 @@ jobs:
         env:
           lambda_function_name: ${{ secrets.LAMBDA_FUNCTION_NAME }}
         run: |
-          unzip fileb://lambda_function.zip -d lambda_function
+          unzip lambda_function.zip -d lambda_function
 
           for file in $(git diff --name-only HEAD^ HEAD); do
             if [[$file == *.py]]; then
