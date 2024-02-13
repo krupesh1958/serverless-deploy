@@ -20,7 +20,7 @@ jobs:
 
       - name: Package Lambda Function
         run: |
-          zip -r lambda_function.zip lambda_function.py layers/requirements.txt
+          zip -r lambda_function.zip lambda_function.py
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -36,7 +36,7 @@ jobs:
           unzip lambda_function.zip -d lambda_function
 
           for file in $(git diff-tree --no-commit-id --name-only -r HEAD); do
-            if [[$file == *.py]] || [$file == *.txt]; then
+            if [[$file == *.py]]; then
                 mkdir -p lambda_function/$(dirname $file)
                 cp $file lambda_function/$file
 
