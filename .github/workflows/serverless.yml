@@ -35,8 +35,8 @@ jobs:
         run: |
           unzip lambda_function.zip -d lambda_function
 
-          for file in $(git diff --name-only HEAD^ HEAD); do
-            if [[$file == *.py]]; then
+          for file in $(git diff-tree --no-commit-id --name-only -r HEAD); do
+            if [[$file == *.py]] || [$file == *.txt]; then
                 mkdir -p lambda_function/$(dirname $file)
                 cp $file lambda_function/$file
 
