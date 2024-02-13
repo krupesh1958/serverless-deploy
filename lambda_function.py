@@ -15,7 +15,7 @@ def lambda_handler(event, context):
     effect = "Deny"
     if auth == "allow":
         effect = "Allow"
-    
+
     auth_resp = generate_policy(
         principal_id="user",
         effect=effect,

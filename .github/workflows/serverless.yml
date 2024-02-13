@@ -17,10 +17,10 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: 3.12
-      
+
       - name: Package Lambda Function
         run: |
-          zip -r lambda_function.zip lambda_function.py
+          zip -r lambda_function.zip lambda_function.py layers/requirements.txt
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -29,8 +29,22 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}  # Update this to your AWS region
 
-      - name: Update Lambda function code
+      - name: Deploy only modified files
         env:
           lambda_function_name: ${{ secrets.LAMBDA_FUNCTION_NAME }}
         run: |
-          aws lambda update-function-code --function-name $lambda_function_name --zip-file fileb://lambda_function.zip
+          unzip fileb://lambda_function.zip -d lambda_function
+
+          for file in $(git diff --name-only HEAD^ HEAD); do
+            if [[$file == *.py]]; then
+                mkdir -p lambda_function/$(dirname $file)
+                cp $file lambda_function/$file
+
+                cat lambda_function/$file
+            fi
+          done
+          cd lambda_function
+          zip -r ../updated_lambda.zip .
+          cd ..
+
+          aws lambda update-function-code --function-name $lambda_function_name --zip-file fileb://updated_lambda.zip
